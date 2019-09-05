@@ -4,7 +4,12 @@ import { base } from './base';
 import { box } from './marks/rule';
 import { className, initializePanel } from './panel';
 import { colorToString } from './color';
-import { createDeckGLClassesForPresenter, DeckGL_Class, DeckGLInternalProps } from './deck.gl-classes/deckgl';
+import {
+    createDeckGLClassesForPresenter,
+    DeckGL_Class,
+    DeckGLInternalProps,
+    InteractiveState
+} from './deck.gl-classes/deckgl';
 import { createStage, defaultPresenterConfig, defaultPresenterStyle } from './defaults';
 import {
     Cube,
@@ -176,8 +181,10 @@ export class Presenter {
                 onLayerClick: config && config.onLayerClick,
                 views: [new base.deck.OrbitView({ controller: this.OrbitControllerClass })],
                 container: this.getElement(PresenterElement.gl) as HTMLCanvasElement,
-                getCursor: (x) => {
-                    if (x.onCube || x.onText) {
+                getCursor: (interactiveState: InteractiveState) => {
+                    if (interactiveState.onText || interactiveState.onAxisSelection) {
+                        return 'pointer';
+                    } else if (interactiveState.onCube) {
                         return 'default';
                     } else {
                         return 'grab';

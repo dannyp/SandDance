@@ -8306,7 +8306,9 @@ const LegendView = props => {
       rows: rows,
       rowClassName: "legend-row",
       onRowClick: (e, i) => props.onClick(e, props.legend, i)
-    }, props.legend.title !== void 0 && (0, _tsxCreateElement.createElement)("tr", null, (0, _tsxCreateElement.createElement)("th", {
+    }, props.legend.title !== void 0 && (0, _tsxCreateElement.createElement)("tr", {
+      onClick: e => props.onClick(e, props.legend, null)
+    }, (0, _tsxCreateElement.createElement)("th", {
       colSpan: 2
     }, props.legend.title)));
   }
@@ -8930,8 +8932,10 @@ class Presenter {
           controller: this.OrbitControllerClass
         })],
         container: this.getElement(_enums.PresenterElement.gl),
-        getCursor: x => {
-          if (x.onCube || x.onText) {
+        getCursor: interactiveState => {
+          if (interactiveState.onText || interactiveState.onAxisSelection) {
+            return 'pointer';
+          } else if (interactiveState.onCube) {
             return 'default';
           } else {
             return 'grab';
@@ -10458,7 +10462,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-function axisSelectionLayer(specCapabilities, columns, stage, clickHandler, highlightColor, polygonZ) {
+function axisSelectionLayer(presenter, specCapabilities, columns, stage, clickHandler, highlightColor, polygonZ) {
   const polygons = [];
   const xRole = specCapabilities.roles.filter(r => r.role === 'x')[0];
 
@@ -10496,6 +10500,13 @@ function axisSelectionLayer(specCapabilities, columns, stage, clickHandler, high
     extruded: false,
     highlightColor,
     id: 'selections',
+    onHover: (o, e) => {
+      if (o.index === -1) {
+        presenter.deckgl.interactiveState.onAxisSelection = false;
+      } else {
+        presenter.deckgl.interactiveState.onAxisSelection = true;
+      }
+    },
     onClick,
     getElevation: () => 0,
     getFillColor: () => [0, 0, 0, 0],
@@ -14962,7 +14973,7 @@ class Viewer {
       }
     };
 
-    const polygonLayer = (0, _axisSelection.axisSelectionLayer)(this.specCapabilities, this._specColumns, stage, onClick, this.options.colors.axisSelectHighlight, this.options.selectionPolygonZ);
+    const polygonLayer = (0, _axisSelection.axisSelectionLayer)(this.presenter, this.specCapabilities, this._specColumns, stage, onClick, this.options.colors.axisSelectHighlight, this.options.selectionPolygonZ);
     const order = 1; //after textlayer but before others
 
     deckProps.layers.splice(order, 0, polygonLayer);
@@ -15059,7 +15070,7 @@ class Viewer {
         }
       },
       onLegendClick: (e, legend, clickedIndex) => {
-        const legendRow = legend.rows[clickedIndex] && legend.rows[clickedIndex];
+        const legendRow = clickedIndex !== null && legend.rows[clickedIndex];
 
         if (legendRow) {
           if (this.options.onLegendRowClick) {
@@ -15067,6 +15078,9 @@ class Viewer {
           } else {
             this.select(legendRow.search);
           }
+        } else if (this.options.onLegendHeaderClick) {
+          //header clicked
+          this.options.onLegendHeaderClick(e);
         }
       }
     };
@@ -15244,7 +15258,18 @@ class Viewer {
 
 exports.Viewer = Viewer;
 Viewer.defaultViewerOptions = _defaults2.defaultViewerOptions;
-},{"./searchExpression":"0mJg","./vega-deck.gl":"Uns8","./animator":"U1OZ","./colorCubes":"PfBA","./signals":"jmI2","./ordinal":"/0dx","./axisSelection":"oIzg","./specs/clone":"DO07","./dataScope":"5MJ1","./vega-deck.gl/defaults":"JuFU","./defaults":"G0Md","./details":"1/KC","./headers":"nQLz","./legend":"9/rI","tsx-create-element":"QGtg","./axes":"A7xy","./colorSchemes":"kNpg","./tooltip":"bkgF"}],"rZaE":[function(require,module,exports) {
+},{"./searchExpression":"0mJg","./vega-deck.gl":"Uns8","./animator":"U1OZ","./colorCubes":"PfBA","./signals":"jmI2","./ordinal":"/0dx","./axisSelection":"oIzg","./specs/clone":"DO07","./dataScope":"5MJ1","./vega-deck.gl/defaults":"JuFU","./defaults":"G0Md","./details":"1/KC","./headers":"nQLz","./legend":"9/rI","tsx-create-element":"QGtg","./axes":"A7xy","./colorSchemes":"kNpg","./tooltip":"bkgF"}],"DZif":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.version = void 0;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+const version = "1.4.0";
+exports.version = version;
+},{}],"rZaE":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15266,6 +15291,12 @@ Object.defineProperty(exports, "Viewer", {
   enumerable: true,
   get: function () {
     return _viewer.Viewer;
+  }
+});
+Object.defineProperty(exports, "version", {
+  enumerable: true,
+  get: function () {
+    return _version.version;
   }
 });
 exports.VegaDeckGl = exports.util = exports.types = exports.searchExpression = exports.constants = void 0;
@@ -15294,8 +15325,10 @@ var _colorSchemes = require("./colorSchemes");
 
 var _viewer = require("./viewer");
 
+var _version = require("./version");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-},{"./constants":"Syc7","./searchExpression":"0mJg","./types":"JCLk","./util":"BTLl","./vega-deck.gl":"Uns8","./colorSchemes":"kNpg","./viewer":"CdFf"}],"wkaK":[function(require,module,exports) {
+},{"./constants":"Syc7","./searchExpression":"0mJg","./types":"JCLk","./util":"BTLl","./vega-deck.gl":"Uns8","./colorSchemes":"kNpg","./viewer":"CdFf","./version":"DZif"}],"wkaK":[function(require,module,exports) {
 module.exports = compare;
 
 /*
@@ -16364,7 +16397,18 @@ class SandDanceReact extends React.Component {
 }
 
 exports.SandDanceReact = SandDanceReact;
-},{"react":"W4rj","./util":"HI4Z","react-dom":"UiuB","@msrvida/sanddance":"rZaE"}],"MjKu":[function(require,module,exports) {
+},{"react":"W4rj","./util":"HI4Z","react-dom":"UiuB","@msrvida/sanddance":"rZaE"}],"6TN0":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.version = void 0;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+const version = "1.1.0";
+exports.version = version;
+},{}],"MjKu":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16374,6 +16418,12 @@ Object.defineProperty(exports, "SandDanceReact", {
   enumerable: true,
   get: function () {
     return _viewer.SandDanceReact;
+  }
+});
+Object.defineProperty(exports, "version", {
+  enumerable: true,
+  get: function () {
+    return _version.version;
   }
 });
 exports.util = exports.SandDance = void 0;
@@ -16388,8 +16438,10 @@ exports.util = util;
 
 var _viewer = require("./viewer");
 
+var _version = require("./version");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-},{"@msrvida/sanddance":"rZaE","./util":"HI4Z","./viewer":"qyfj"}],"Vlbn":[function(require,module,exports) {
+},{"@msrvida/sanddance":"rZaE","./util":"HI4Z","./viewer":"qyfj","./version":"6TN0"}],"Vlbn":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16415,6 +16467,41 @@ function use(fabric, vega, deck, layers, luma) {
 
   base.fabric = fabric;
 }
+},{"@msrvida/sanddance-react":"MjKu"}],"Dryx":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getCanvas = getCanvas;
+exports.removeTabIndex = removeTabIndex;
+exports.capabilities = void 0;
+
+var _sanddanceReact = require("@msrvida/sanddance-react");
+
+var PresenterElement = _sanddanceReact.SandDance.VegaDeckGl.PresenterElement;
+
+function getCanvas(viewer) {
+  var tags = viewer.presenter.getElement(PresenterElement.gl).getElementsByTagName('canvas');
+
+  if (tags) {
+    return tags[0];
+  }
+}
+
+function removeTabIndex(viewer) {
+  var canvas = getCanvas(viewer);
+
+  if (canvas) {
+    canvas.tabIndex = -1;
+  }
+}
+
+var capabilities = {
+  webgl: !!document.createElement('canvas').getContext('webgl'),
+  webgl2: !!document.createElement('canvas').getContext('webgl2')
+};
+exports.capabilities = capabilities;
 },{"@msrvida/sanddance-react":"MjKu"}],"CgE3":[function(require,module,exports) {
 "use strict";
 
@@ -16912,535 +16999,7 @@ if ("production" === 'production') {
 } else {
   module.exports = require('./cjs/react.development.js');
 }
-},{"./cjs/react.production.min.js":"8Xy5"}],"Uyrp":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.Dropdown = Dropdown;
-exports.dropdownWidth = void 0;
-
-var React = _interopRequireWildcard(require("react"));
-
-var _base = require("../base");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-var dropdownWidth = 200;
-exports.dropdownWidth = dropdownWidth;
-
-function Dropdown(props) {
-  var selectedKey = null;
-
-  if (props.options && props.options.length > 1) {
-    var selectedOptions = props.options.filter(function (option) {
-      return option.selected;
-    });
-
-    if (selectedOptions && selectedOptions.length > 0) {
-      selectedKey = selectedOptions[0].key;
-    }
-  }
-
-  return React.createElement(_base.base.fabric.Dropdown, Object.assign({
-    dropdownWidth: dropdownWidth
-  }, props, {
-    label: props.collapseLabel ? null : props.label,
-    selectedKey: selectedKey,
-    onRenderTitle: props.collapseLabel && function (a, b) {
-      return React.createElement("span", null, props.label, ": ", a[0].text);
-    }
-  }));
-}
-},{"react":"ccIB","../base":"Vlbn"}],"OWDI":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.Signal = Signal;
-
-var React = _interopRequireWildcard(require("react"));
-
-var _base = require("../base");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-function Signal(props) {
-  if (!props.explorer.viewer || !props.signal) {
-    return null;
-  }
-
-  if (props.signal.bind) {
-    var input = props.signal.bind.input;
-
-    if (input) {
-      var fn = map[input];
-
-      if (fn) {
-        var prefix = props.prefix ? "".concat(props.prefix, " ") : '';
-        var initialValue;
-
-        try {
-          initialValue = props.explorer.viewer.vegaViewGl.signal(props.signal.name);
-        } catch (error) {}
-
-        var control = fn(prefix, props.signal.bind, initialValue, function (value) {
-          props.onChange && props.onChange(value);
-          props.explorer.signal(props.signal.name, value);
-        }, props.disabled);
-        return React.createElement("div", {
-          className: "sanddance-signal"
-        }, control);
-      }
-    }
-  }
-
-  return null;
-}
-
-var map = {};
-
-map['range'] = function (prefix, bind, initialValue, onChange, disabled) {
-  return React.createElement(_base.base.fabric.Slider, {
-    label: prefix + bind.name,
-    max: bind.max,
-    min: bind.min,
-    step: bind.step,
-    value: initialValue,
-    onChange: onChange,
-    disabled: disabled
-  });
-};
-
-map['select'] = function (prefix, bind, initialValue, _onChange, disabled) {
-  var options = bind.options.map(function (o, i) {
-    var option = {
-      key: o,
-      text: o
-    };
-    return option;
-  });
-  return React.createElement(_base.base.fabric.Dropdown, {
-    defaultSelectedKey: initialValue,
-    label: prefix + bind.name,
-    options: options,
-    onChange: function onChange(e, o) {
-      return _onChange(o.text);
-    },
-    disabled: disabled
-  });
-};
-
-map['checkbox'] = function (prefix, bind, initialValue, _onChange2, disabled) {
-  return React.createElement(_base.base.fabric.Toggle, {
-    defaultChecked: initialValue,
-    label: prefix + bind.name,
-    onChange: function onChange(e, checked) {
-      return _onChange2(checked);
-    },
-    disabled: disabled
-  });
-}; //TODO other signal types
-},{"react":"ccIB","../base":"Vlbn"}],"hk5u":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.strings = void 0;
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-var strings = {
-  appName: "SandDance",
-  bingsearch: "Bing",
-  buttonClose: "Close",
-  buttonSelect: "Search & Select",
-  buttonColorSchemeMap: "Map color scheme to filtered data",
-  buttonColorSchemeRemap: "Remap color to filtered data",
-  buttonColorSchemeKeep: "Keep same color scheme",
-  buttonCopyToClipboard: "Copy to clipboard",
-  buttonExclude: "Exclude",
-  buttonIsolate: "Isolate",
-  buttonReset: "Stop filtering",
-  buttonDeselect: "Clear selection",
-  buttonToolbarFloat: "Float toolbar",
-  buttonToolbarDock: "Dock toolbar",
-  buttonToolbarHide: "Hide toolbar",
-  buttonToolbarShow: "Show toolbar",
-  buttonNextDataItem: "Next data item",
-  buttonPrevDataItem: "Previous data item",
-  buttonCreateSnapshot: "Create snapshot",
-  buttonAddExpression: "add expression",
-  buttonAddExpressionGroup: "add group",
-  buttonDeleteExpression: "delete",
-  buttonDeleteExpressionGroup: "delete group",
-  buttonDeleteSnapshot: "delete snapshot",
-  buttonShowVegaSpec: "Show Vega spec",
-  buttonLaunchVegaEditor: "Open Vega Editor",
-  buttonCameraHome: "Center chart in window",
-  buttonTooltipMapping: "Tooltip columns...",
-  chartTypeBarChart: "Bar chart",
-  chartTypeDensity: "Density",
-  chartTypeGrid: "Grid",
-  chartTypeScatterPlot: "Scatter plot",
-  chartTypeStacks: "Stacks",
-  chartTypeTreeMap: "Tree map",
-  errorColumnMustBeNumeric: "Numeric column required for this chart type.",
-  labelChartSettings: "Chart settings",
-  labelDataBrowser: "Data browser",
-  labelTools: "Tools",
-  labelVegaSpec: "Vega specification",
-  labelColor: "Chart color",
-  labelError: "Error",
-  labelSnapshots: "Snapshots",
-  labelSearch: "Select by search",
-  labelChart: "Chart",
-  labelChartCanvas: "Chart canvas",
-  labelColumnMapping: "Column Mapping",
-  labelChartTypeOptions: "Chart options",
-  labelColorBin: "Color binning",
-  labelColorBinExplanation: "For numeric columns",
-  labelColorBinNone: "None (continuous)",
-  labelColorBinQuantize: "Quantize",
-  labelColorBinQuantile: "Quantile",
-  labelColorFilter: "Note: Colors will be re-mapped to the filter when viewing this snapshot.",
-  labelColorScheme: "Scheme",
-  labelColumnColor: "Color by",
-  labelColumnFacet: "Facet by",
-  labelColumnSort: "Sort by",
-  labelColumnX: "X Axis",
-  labelColumnY: "Y Axis",
-  labelColumnZ: "Z Axis",
-  labelColumnSize: "Size by",
-  labelColumnGroup: "Group by",
-  labelDataItemIsFiltered: "Item is filtered from view",
-  labelShowLegend: "Show legend",
-  labelShowAxes: "Show axes",
-  labelSnapshotDescription: "Description",
-  labelTooltipMapping: "Tooltip columns",
-  labelTransitionDurations: "Transition durations",
-  labelTransitionCamera: "2D / 3D view",
-  labelTransitionColor: "Color",
-  labelTransitionPosition: "Position",
-  labelTransitionSize: "Size",
-  labelVegaSpecData: "Data reference",
-  labelVegaSpecNotes: "Note: You may need to change the color scheme to make this visible in Vega.",
-  loading: "Loading...",
-  schemeCategorical: "Categorical",
-  schemeDiverging: "Diverging",
-  schemeDual: "Dual",
-  schemeSequentialMultiHue: "Sequential Multi Hue",
-  schemeSequentialSingleHue: "Sequential Single Hue",
-  selectDataSpanAll: "All rows",
-  selectDataSpanFilter: "Filtered",
-  selectDataSpanSelection: "Selected",
-  selectVegaSpecDataNone: "None",
-  selectVegaSpecDataInline: "Inline - WARNING this may use substantial browser/clipboard memory for large data sets.",
-  selectVegaSpecDataUrl: "URL",
-  record: function record(current, total) {
-    return "".concat(current, " of ").concat(total);
-  },
-  searchEQ: "=",
-  searchNEQ: "<>",
-  searchGT: ">",
-  searchGTE: ">=",
-  searchLT: "<",
-  searchLTE: "<=",
-  searchNULL: "is null or empty",
-  searchIN: "contains",
-  searchSW: "starts with",
-  searchWHERE: "Where",
-  searchAND: "and",
-  searchOR: "or",
-  selectAny: "-- any --",
-  selectNone: "-- none --",
-  selectNumeric: "Numeric",
-  selectNumericWithBinning: "Numeric (with binning)",
-  selectNonNumeric: "Categorical",
-  tooltipSearch: function tooltipSearch(column, value) {
-    return "Click to search in '".concat(column, "' for \"").concat(value, "\"");
-  },
-  labelRequired: "required",
-  lavelViewType2d: "View in 2D",
-  labelViewType3d: "View in 3D",
-  labelDataNullAll: "Loading data...",
-  labelDataNullFiltered: "You can filter by first making a selection, then choosing <b>Isolate</b> or <b>Exclude</b> in the top bar.",
-  labelDataNullSelection: "You can select by: <ul><li>clicking the chart axes</li><li>clicking in the legend</li><li>searching</li</ul>",
-  labelZeroAll: "Dataset contains zero rows.",
-  labelZeroSearchResults: "No rows matched your search.",
-  signalGroups: [{
-    prefix: "Chart",
-    label: "Chart options"
-  }, {
-    prefix: "RoleColor",
-    label: "Color options"
-  }, {
-    prefix: "RoleFacet",
-    label: "Facet options"
-  }, {
-    prefix: "RoleSort",
-    label: "Sort options"
-  }, {
-    prefix: "RoleX",
-    label: "X axis options"
-  }, {
-    prefix: "RoleY",
-    label: "Y axis options"
-  }, {
-    prefix: "RoleZ",
-    label: "Z axis options"
-  }, {
-    prefix: "Text",
-    label: "Text options"
-  }, {
-    prefix: "*",
-    label: "Options"
-  }]
-};
-exports.strings = strings;
-},{}],"DSho":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.ColumnMap = ColumnMap;
-
-var React = _interopRequireWildcard(require("react"));
-
-var _base = require("../base");
-
-var _dropdown = require("./dropdown");
-
-var _sanddanceReact = require("@msrvida/sanddance-react");
-
-var _signal = require("./signal");
-
-var _language = require("../language");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-var maxFacets = 50;
-var roleLabels = {
-  color: _language.strings.labelColumnColor,
-  facet: _language.strings.labelColumnFacet,
-  group: _language.strings.labelColumnGroup,
-  size: _language.strings.labelColumnSize,
-  sort: _language.strings.labelColumnSort,
-  uid: null,
-  x: _language.strings.labelColumnX,
-  y: _language.strings.labelColumnY,
-  z: _language.strings.labelColumnZ
-};
-
-function filterColumnList(context, columns) {
-  switch (context) {
-    case "facet":
-      return columns.filter(function (column) {
-        return column.quantitative || column.stats.distinctValueCount && column.stats.distinctValueCount < maxFacets;
-      });
-
-    default:
-      return columns.slice();
-  }
-}
-
-function optionsForSpecColumn(sectionName, columns, role, selectedColumnName) {
-  var filtered = filterColumnList(role, columns);
-  var options = filtered.map(function (column, i) {
-    var option = {
-      key: column.name,
-      text: column.name,
-      data: column,
-      selected: selectedColumnName === column.name
-    };
-    return option;
-  });
-
-  if (options.length) {
-    var option = {
-      key: sectionName,
-      text: sectionName,
-      itemType: _base.base.fabric.DropdownMenuItemType.Header
-    };
-    options.unshift(option);
-  }
-
-  return options;
-}
-
-function selectFirst(options) {
-  for (var i = 0; i < options.length; i++) {
-    if (options[i].itemType === _base.base.fabric.DropdownMenuItemType.Header) continue;
-    options[i].selected = true;
-    return;
-  }
-}
-
-function ColumnMap(props) {
-  if (!props.specRole) return null;
-  var numericLabel = _language.strings.selectNumeric;
-
-  if (props.specRole.binnable) {
-    numericLabel = _language.strings.selectNumericWithBinning;
-  }
-
-  var qoptions = optionsForSpecColumn(numericLabel, props.quantitativeColumns, props.specRole.role, props.selectedColumnName);
-  var coptions = props.specRole.excludeCategoric ? null : optionsForSpecColumn(_language.strings.selectNonNumeric, props.categoricalColumns, props.specRole.role, props.selectedColumnName);
-  var options = qoptions.concat(coptions).filter(Boolean);
-
-  if (props.specRole.allowNone) {
-    options.unshift({
-      key: -1,
-      text: _language.strings.selectNone
-    });
-  }
-
-  var hasSelection = options.reduce(function (p, c) {
-    return p || c.selected;
-  }, false);
-
-  if (!hasSelection) {
-    selectFirst(options);
-  }
-
-  var signals;
-
-  if (props.explorer.viewer && props.explorer.viewer.vegaSpec) {
-    if (props.specRole.signals) {
-      signals = props.explorer.viewer.vegaSpec.signals.filter(function (s) {
-        return props.specRole.signals.indexOf(s.name) >= 0;
-      });
-    }
-  }
-
-  var label = roleLabels[props.specRole.role];
-  return React.createElement("div", {
-    className: "sanddance-columnMap"
-  }, React.createElement(_dropdown.Dropdown, {
-    componentRef: props.componentRef,
-    collapseLabel: true,
-    disabled: props.disabled,
-    label: label,
-    options: options,
-    onChange: function onChange(e, o) {
-      return props.changeColumnMapping(props.specRole.role, _sanddanceReact.SandDance.VegaDeckGl.util.clone(o.data));
-    },
-    onDismiss: props.onDismiss
-  }), !props.hideSignals && signals && signals.map(function (signal, i) {
-    return React.createElement(_signal.Signal, {
-      key: i,
-      explorer: props.explorer,
-      signal: signal,
-      onChange: function onChange(value) {
-        return props.onChangeSignal && props.onChangeSignal(signal.name, value);
-      }
-    });
-  }));
-}
-},{"react":"ccIB","../base":"Vlbn","./dropdown":"Uyrp","@msrvida/sanddance-react":"MjKu","./signal":"OWDI","../language":"hk5u"}],"UUG7":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.onBeforeCreateLayers = onBeforeCreateLayers;
-exports.ActiveDropdown = void 0;
-
-var React = _interopRequireWildcard(require("react"));
-
-var _columnMap = require("./controls/columnMap");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-function onBeforeCreateLayers(stage, specCapabilities) {
-  var _loop = function _loop(axisName) {
-    specCapabilities.roles.forEach(function (specRole) {
-      if (specRole.role === axisName) {
-        var axes = stage.axes[axisName];
-        axes.forEach(function (axis) {
-          if (axis.title) {
-            var textItem = axis.title;
-            textItem.specRole = specRole;
-          }
-        });
-      }
-    });
-  };
-
-  for (var axisName in stage.axes) {
-    _loop(axisName);
-  }
-}
-
-var ActiveDropdown =
-/*#__PURE__*/
-function (_React$Component) {
-  _inherits(ActiveDropdown, _React$Component);
-
-  function ActiveDropdown(props) {
-    var _this;
-
-    _classCallCheck(this, ActiveDropdown);
-
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(ActiveDropdown).call(this, props));
-    _this.dropdownRef = React.createRef();
-    return _this;
-  }
-
-  _createClass(ActiveDropdown, [{
-    key: "componentDidMount",
-    value: function componentDidMount() {
-      this.dropdownRef.current.focus(true);
-    }
-  }, {
-    key: "render",
-    value: function render() {
-      return React.createElement("div", {
-        className: "sanddance-columnMap-absolute",
-        style: {
-          position: 'absolute',
-          left: this.props.left + 'px',
-          top: this.props.top + 'px'
-        }
-      }, React.createElement(_columnMap.ColumnMap, Object.assign({}, this.props, {
-        componentRef: this.dropdownRef,
-        hideSignals: true
-      })));
-    }
-  }]);
-
-  return ActiveDropdown;
-}(React.Component);
-
-exports.ActiveDropdown = ActiveDropdown;
-},{"react":"ccIB","./controls/columnMap":"DSho"}],"dH6z":[function(require,module,exports) {
+},{"./cjs/react.production.min.js":"8Xy5"}],"dH6z":[function(require,module,exports) {
 'use strict';
 
 if ("production" === 'production') {
@@ -17798,7 +17357,171 @@ function IconButton(props) {
     menuProps: props.menuProps
   }));
 }
-},{"react":"ccIB","../base":"Vlbn"}],"E67y":[function(require,module,exports) {
+},{"react":"ccIB","../base":"Vlbn"}],"hk5u":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.strings = void 0;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+var strings = {
+  appName: "SandDance",
+  bingsearch: "Bing",
+  buttonClose: "Close",
+  buttonSelect: "Search & Select",
+  buttonColorSchemeMap: "Map color scheme to filtered data",
+  buttonColorSchemeRemap: "Remap color to filtered data",
+  buttonColorSchemeKeep: "Keep same color scheme",
+  buttonCopyToClipboard: "Copy to clipboard",
+  buttonExclude: "Exclude",
+  buttonIsolate: "Isolate",
+  buttonReset: "Stop filtering",
+  buttonDeselect: "Clear selection",
+  buttonToolbarFloat: "Float toolbar",
+  buttonToolbarDock: "Dock toolbar",
+  buttonToolbarHide: "Hide toolbar",
+  buttonToolbarShow: "Show toolbar",
+  buttonNextDataItem: "Next data item",
+  buttonPrevDataItem: "Previous data item",
+  buttonCreateSnapshot: "Create snapshot",
+  buttonAddExpression: "add expression",
+  buttonAddExpressionGroup: "add group",
+  buttonDeleteExpression: "delete",
+  buttonDeleteExpressionGroup: "delete group",
+  buttonDeleteSnapshot: "delete snapshot",
+  buttonShowVegaSpec: "Show Vega spec",
+  buttonLaunchVegaEditor: "Open Vega Editor",
+  buttonCameraHome: "Center chart in window",
+  buttonTooltipMapping: "Tooltip columns...",
+  chartTypeBarChart: "Bar chart",
+  chartTypeDensity: "Density",
+  chartTypeGrid: "Grid",
+  chartTypeScatterPlot: "Scatter plot",
+  chartTypeStacks: "Stacks",
+  chartTypeTreeMap: "Tree map",
+  errorColumnMustBeNumeric: "Numeric column required for this chart type.",
+  labelBlank: "blank",
+  labelNull: "null",
+  labelTrue: "true",
+  labelFalse: "false",
+  labelSystemInfo: "System info",
+  labelChartSettings: "Chart settings",
+  labelDataBrowser: "Data browser",
+  labelTools: "Tools",
+  labelVegaSpec: "Vega specification",
+  labelColor: "Chart color",
+  labelError: "Error",
+  labelSnapshots: "Snapshots",
+  labelSearch: "Select by search",
+  labelChart: "Chart",
+  labelChartCanvas: "Chart canvas",
+  labelColumnMapping: "Column Mapping",
+  labelChartTypeOptions: "Chart options",
+  labelColorBin: "Color binning",
+  labelColorBinExplanation: "For numeric columns",
+  labelColorBinNone: "None (continuous)",
+  labelColorBinQuantize: "Quantize",
+  labelColorBinQuantile: "Quantile",
+  labelColorFilter: "Note: Colors will be re-mapped to the filter when viewing this snapshot.",
+  labelColorScheme: "Scheme",
+  labelColumnColor: "Color by",
+  labelColumnFacet: "Facet by",
+  labelColumnSort: "Sort by",
+  labelColumnX: "X Axis",
+  labelColumnY: "Y Axis",
+  labelColumnZ: "Z Axis",
+  labelColumnSize: "Size by",
+  labelColumnGroup: "Group by",
+  labelDataItemIsFiltered: "Item is filtered from view",
+  labelShowLegend: "Show legend",
+  labelShowAxes: "Show axes",
+  labelSnapshotDescription: "Description",
+  labelTooltipMapping: "Tooltip columns",
+  labelTransitionDurations: "Transition durations",
+  labelTransitionCamera: "2D / 3D view",
+  labelTransitionColor: "Color",
+  labelTransitionPosition: "Position",
+  labelTransitionSize: "Size",
+  labelVegaSpecData: "Data reference",
+  labelVegaSpecNotes: "Note: You may need to change the color scheme to make this visible in Vega.",
+  labelYes: "Yes",
+  labelNo: "No",
+  loading: "Loading...",
+  schemeCategorical: "Categorical",
+  schemeDiverging: "Diverging",
+  schemeDual: "Dual",
+  schemeSequentialMultiHue: "Sequential Multi Hue",
+  schemeSequentialSingleHue: "Sequential Single Hue",
+  selectDataSpanAll: "All rows",
+  selectDataSpanFilter: "Filtered",
+  selectDataSpanSelection: "Selected",
+  selectVegaSpecDataNone: "None",
+  selectVegaSpecDataInline: "Inline - WARNING this may use substantial browser/clipboard memory for large data sets.",
+  selectVegaSpecDataUrl: "URL",
+  record: function record(current, total) {
+    return "".concat(current, " of ").concat(total);
+  },
+  searchEQ: "=",
+  searchNEQ: "<>",
+  searchGT: ">",
+  searchGTE: ">=",
+  searchLT: "<",
+  searchLTE: "<=",
+  searchNULL: "is null or empty",
+  searchIN: "contains",
+  searchSW: "starts with",
+  searchWHERE: "Where",
+  searchAND: "and",
+  searchOR: "or",
+  selectAny: "-- any --",
+  selectNone: "-- none --",
+  selectNumeric: "Numeric",
+  selectNonNumeric: "Categorical",
+  tooltipSearch: function tooltipSearch(column, value) {
+    return "Click to search in '".concat(column, "' for \"").concat(value, "\"");
+  },
+  labelRequired: "required",
+  labelSystem: "System",
+  lavelViewType2d: "View in 2D",
+  labelViewType3d: "View in 3D",
+  labelDataNullAll: "Loading data...",
+  labelDataNullFiltered: "You can filter by first making a selection, then choosing <b>Isolate</b> or <b>Exclude</b> in the top bar.",
+  labelDataNullSelection: "You can select by: <ul><li>clicking the chart axes</li><li>clicking in the legend</li><li>searching</li</ul>",
+  labelZeroAll: "Dataset contains zero rows.",
+  labelZeroSearchResults: "No rows matched your search.",
+  signalGroups: [{
+    prefix: "Chart",
+    label: "Chart options"
+  }, {
+    prefix: "RoleColor",
+    label: "Color options"
+  }, {
+    prefix: "RoleFacet",
+    label: "Facet options"
+  }, {
+    prefix: "RoleSort",
+    label: "Sort options"
+  }, {
+    prefix: "RoleX",
+    label: "X axis options"
+  }, {
+    prefix: "RoleY",
+    label: "Y axis options"
+  }, {
+    prefix: "RoleZ",
+    label: "Z axis options"
+  }, {
+    prefix: "Text",
+    label: "Text options"
+  }, {
+    prefix: "*",
+    label: "Options"
+  }]
+};
+exports.strings = strings;
+},{}],"E67y":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17895,7 +17618,279 @@ function defaultColorScheme(c) {
 
   return 'category20';
 }
-},{}],"cFWm":[function(require,module,exports) {
+},{}],"Uyrp":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Dropdown = Dropdown;
+exports.dropdownWidth = void 0;
+
+var React = _interopRequireWildcard(require("react"));
+
+var _base = require("../base");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+var dropdownWidth = 200;
+exports.dropdownWidth = dropdownWidth;
+
+function Dropdown(props) {
+  var selectedKey = null;
+
+  if (props.options && props.options.length > 1) {
+    var selectedOptions = props.options.filter(function (option) {
+      return option.selected;
+    });
+
+    if (selectedOptions && selectedOptions.length > 0) {
+      selectedKey = selectedOptions[0].key;
+    }
+  }
+
+  return React.createElement(_base.base.fabric.Dropdown, Object.assign({
+    dropdownWidth: dropdownWidth
+  }, props, {
+    label: props.collapseLabel ? null : props.label,
+    selectedKey: selectedKey,
+    onRenderTitle: props.collapseLabel && function (a, b) {
+      return React.createElement("span", null, props.label, ": ", a[0].text);
+    }
+  }));
+}
+},{"react":"ccIB","../base":"Vlbn"}],"OWDI":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Signal = Signal;
+
+var React = _interopRequireWildcard(require("react"));
+
+var _base = require("../base");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+function Signal(props) {
+  if (!props.explorer.viewer || !props.signal) {
+    return null;
+  }
+
+  if (props.signal.bind) {
+    var input = props.signal.bind.input;
+
+    if (input) {
+      var fn = map[input];
+
+      if (fn) {
+        var prefix = props.prefix ? "".concat(props.prefix, " ") : '';
+        var initialValue;
+
+        try {
+          initialValue = props.explorer.viewer.vegaViewGl.signal(props.signal.name);
+        } catch (error) {}
+
+        var control = fn(prefix, props.signal.bind, initialValue, function (value) {
+          props.onChange && props.onChange(value);
+          props.explorer.signal(props.signal.name, value);
+        }, props.disabled);
+        return React.createElement("div", {
+          className: "sanddance-signal"
+        }, control);
+      }
+    }
+  }
+
+  return null;
+}
+
+var map = {};
+
+map['range'] = function (prefix, bind, initialValue, onChange, disabled) {
+  return React.createElement(_base.base.fabric.Slider, {
+    label: prefix + bind.name,
+    max: bind.max,
+    min: bind.min,
+    step: bind.step,
+    value: initialValue,
+    onChange: onChange,
+    disabled: disabled
+  });
+};
+
+map['select'] = function (prefix, bind, initialValue, _onChange, disabled) {
+  var options = bind.options.map(function (o, i) {
+    var option = {
+      key: o,
+      text: o
+    };
+    return option;
+  });
+  return React.createElement(_base.base.fabric.Dropdown, {
+    defaultSelectedKey: initialValue,
+    label: prefix + bind.name,
+    options: options,
+    onChange: function onChange(e, o) {
+      return _onChange(o.text);
+    },
+    disabled: disabled
+  });
+};
+
+map['checkbox'] = function (prefix, bind, initialValue, _onChange2, disabled) {
+  return React.createElement(_base.base.fabric.Toggle, {
+    defaultChecked: initialValue,
+    label: prefix + bind.name,
+    onChange: function onChange(e, checked) {
+      return _onChange2(checked);
+    },
+    disabled: disabled
+  });
+}; //TODO other signal types
+},{"react":"ccIB","../base":"Vlbn"}],"DSho":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.ColumnMap = ColumnMap;
+
+var React = _interopRequireWildcard(require("react"));
+
+var _base = require("../base");
+
+var _dropdown = require("./dropdown");
+
+var _sanddanceReact = require("@msrvida/sanddance-react");
+
+var _signal = require("./signal");
+
+var _language = require("../language");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+var maxFacets = 50;
+var roleLabels = {
+  color: _language.strings.labelColumnColor,
+  facet: _language.strings.labelColumnFacet,
+  group: _language.strings.labelColumnGroup,
+  size: _language.strings.labelColumnSize,
+  sort: _language.strings.labelColumnSort,
+  uid: null,
+  x: _language.strings.labelColumnX,
+  y: _language.strings.labelColumnY,
+  z: _language.strings.labelColumnZ
+};
+
+function filterColumnList(context, columns) {
+  switch (context) {
+    case "facet":
+      return columns.filter(function (column) {
+        return column.quantitative || column.stats.distinctValueCount && column.stats.distinctValueCount < maxFacets;
+      });
+
+    default:
+      return columns.slice();
+  }
+}
+
+function optionsForSpecColumn(sectionName, columns, role, selectedColumnName) {
+  var filtered = filterColumnList(role, columns);
+  var options = filtered.map(function (column, i) {
+    var option = {
+      key: column.name,
+      text: column.name,
+      data: column,
+      selected: selectedColumnName === column.name
+    };
+    return option;
+  });
+
+  if (options.length) {
+    var option = {
+      key: sectionName,
+      text: sectionName,
+      itemType: _base.base.fabric.DropdownMenuItemType.Header
+    };
+    options.unshift(option);
+  }
+
+  return options;
+}
+
+function selectFirst(options) {
+  for (var i = 0; i < options.length; i++) {
+    if (options[i].itemType === _base.base.fabric.DropdownMenuItemType.Header) continue;
+    options[i].selected = true;
+    return;
+  }
+}
+
+function ColumnMap(props) {
+  if (!props.specRole) return null;
+  var numericLabel = _language.strings.selectNumeric;
+  var qoptions = optionsForSpecColumn(numericLabel, props.quantitativeColumns, props.specRole.role, props.selectedColumnName);
+  var coptions = props.specRole.excludeCategoric ? null : optionsForSpecColumn(_language.strings.selectNonNumeric, props.categoricalColumns, props.specRole.role, props.selectedColumnName);
+  var options = qoptions.concat(coptions).filter(Boolean);
+
+  if (props.specRole.allowNone) {
+    options.unshift({
+      key: -1,
+      text: _language.strings.selectNone
+    });
+  }
+
+  var hasSelection = options.reduce(function (p, c) {
+    return p || c.selected;
+  }, false);
+
+  if (!hasSelection) {
+    selectFirst(options);
+  }
+
+  var signals;
+
+  if (props.explorer.viewer && props.explorer.viewer.vegaSpec) {
+    if (props.specRole.signals) {
+      signals = props.explorer.viewer.vegaSpec.signals.filter(function (s) {
+        return props.specRole.signals.indexOf(s.name) >= 0;
+      });
+    }
+  }
+
+  var label = roleLabels[props.specRole.role];
+  return React.createElement("div", {
+    className: "sanddance-columnMap"
+  }, React.createElement(_dropdown.Dropdown, {
+    componentRef: props.componentRef,
+    collapseLabel: true,
+    disabled: props.disabled,
+    label: label,
+    options: options,
+    onChange: function onChange(e, o) {
+      return props.changeColumnMapping(props.specRole.role, _sanddanceReact.SandDance.VegaDeckGl.util.clone(o.data));
+    },
+    onDismiss: props.onDismiss
+  }), !props.hideSignals && signals && signals.map(function (signal, i) {
+    return React.createElement(_signal.Signal, {
+      key: i,
+      explorer: props.explorer,
+      signal: signal,
+      onChange: function onChange(value) {
+        return props.onChangeSignal && props.onChangeSignal(signal.name, value);
+      }
+    });
+  }));
+}
+},{"react":"ccIB","../base":"Vlbn","./dropdown":"Uyrp","@msrvida/sanddance-react":"MjKu","./signal":"OWDI","../language":"hk5u"}],"cFWm":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21141,10 +21136,16 @@ function bingSearchLink(column, value) {
 function displayValue(value) {
   switch (value) {
     case '':
-      return React.createElement("i", null, "blank");
+      return React.createElement("i", null, _language.strings.labelBlank);
 
     case null:
-      return React.createElement("i", null, "null");
+      return React.createElement("i", null, _language.strings.labelNull);
+
+    case true:
+      return React.createElement("i", null, _language.strings.labelTrue);
+
+    case false:
+      return React.createElement("i", null, _language.strings.labelFalse);
 
     default:
       return value;
@@ -23011,29 +23012,20 @@ var loadDataArray = function loadDataArray(data) {
 };
 
 exports.loadDataArray = loadDataArray;
-},{"@msrvida/sanddance-react":"MjKu"}],"zKGJ":[function(require,module,exports) {
+},{"@msrvida/sanddance-react":"MjKu"}],"UUG7":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Settings = void 0;
+exports.onBeforeCreateLayers = onBeforeCreateLayers;
+exports.PositionedColumnMap = void 0;
 
 var React = _interopRequireWildcard(require("react"));
 
-var _base = require("../base");
-
-var _dialog = require("../controls/dialog");
-
-var _dropdown = require("../controls/dropdown");
-
-var _group = require("../controls/group");
+var _columnMap = require("./controls/columnMap");
 
 var _sanddanceReact = require("@msrvida/sanddance-react");
-
-var _signal = require("../controls/signal");
-
-var _language = require("../language");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
@@ -23055,6 +23047,174 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
+function onBeforeCreateLayers(stage, specCapabilities) {
+  var _loop = function _loop(axisName) {
+    specCapabilities.roles.forEach(function (specRole) {
+      if (specRole.role === axisName) {
+        var axes = stage.axes[axisName];
+        axes.forEach(function (axis) {
+          if (axis.title) {
+            var textItem = axis.title;
+            textItem.specRole = specRole;
+          }
+        });
+      }
+    });
+  };
+
+  for (var axisName in stage.axes) {
+    _loop(axisName);
+  }
+}
+
+function px(n) {
+  return n + 'px';
+}
+
+var PositionedColumnMap =
+/*#__PURE__*/
+function (_React$Component) {
+  _inherits(PositionedColumnMap, _React$Component);
+
+  function PositionedColumnMap(props) {
+    var _this;
+
+    _classCallCheck(this, PositionedColumnMap);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(PositionedColumnMap).call(this, props));
+    var left = props.left,
+        top = props.top;
+    _this.state = {
+      left: left,
+      top: top
+    };
+    _this.dropdownRef = React.createRef();
+    return _this;
+  }
+
+  _createClass(PositionedColumnMap, [{
+    key: "focus",
+    value: function focus() {
+      if (!this.focused) {
+        this.focused = true;
+        this.dropdownRef.current.focus(true);
+      }
+    }
+  }, {
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      var size = _sanddanceReact.SandDance.VegaDeckGl.util.outerSize(this.div);
+
+      var over = {
+        left: Math.max(0, this.state.left + size.width - this.props.container.offsetWidth),
+        top: Math.max(0, this.state.top + size.height - this.props.container.offsetHeight)
+      };
+
+      if (over.left || over.top) {
+        var _this$state = this.state,
+            left = _this$state.left,
+            top = _this$state.top;
+        left -= over.left;
+        top -= over.top;
+        this.setState({
+          left: left,
+          top: top
+        });
+      } else {
+        this.focus();
+      }
+    }
+  }, {
+    key: "componentDidUpdate",
+    value: function componentDidUpdate() {
+      this.focus();
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var _this2 = this;
+
+      return React.createElement("div", {
+        ref: function ref(div) {
+          if (div) _this2.div = div;
+        },
+        className: "sanddance-columnMap-absolute",
+        style: {
+          position: 'absolute',
+          left: px(this.state.left),
+          top: px(this.state.top)
+        }
+      }, React.createElement(_columnMap.ColumnMap, Object.assign({}, this.props, {
+        componentRef: this.dropdownRef,
+        hideSignals: true
+      })));
+    }
+  }]);
+
+  return PositionedColumnMap;
+}(React.Component);
+
+exports.PositionedColumnMap = PositionedColumnMap;
+},{"react":"ccIB","./controls/columnMap":"DSho","@msrvida/sanddance-react":"MjKu"}],"RvaL":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.version = void 0;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+var version = "1.5.1";
+exports.version = version;
+},{}],"zKGJ":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Settings = void 0;
+
+var React = _interopRequireWildcard(require("react"));
+
+var SandDanceReact = _interopRequireWildcard(require("@msrvida/sanddance-react"));
+
+var _base = require("../base");
+
+var _canvas = require("../canvas");
+
+var _dialog = require("../controls/dialog");
+
+var _dropdown = require("../controls/dropdown");
+
+var _group = require("../controls/group");
+
+var _signal = require("../controls/signal");
+
+var _language = require("../language");
+
+var _version = require("../version");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+var SandDance = SandDanceReact.SandDance;
 var DataRefType;
 
 (function (DataRefType) {
@@ -23065,12 +23225,12 @@ var DataRefType;
 
 function filterSignals(signal) {
   switch (signal.name) {
-    case _sanddanceReact.SandDance.constants.SignalNames.XBins:
-    case _sanddanceReact.SandDance.constants.SignalNames.YBins:
-    case _sanddanceReact.SandDance.constants.SignalNames.ColorBinCount:
-    case _sanddanceReact.SandDance.constants.SignalNames.ColorReverse:
-    case _sanddanceReact.SandDance.constants.SignalNames.PointSize:
-    case _sanddanceReact.SandDance.constants.SignalNames.TreeMapMethod:
+    case SandDance.constants.SignalNames.XBins:
+    case SandDance.constants.SignalNames.YBins:
+    case SandDance.constants.SignalNames.ColorBinCount:
+    case SandDance.constants.SignalNames.ColorReverse:
+    case SandDance.constants.SignalNames.PointSize:
+    case SandDance.constants.SignalNames.TreeMapMethod:
       return false;
 
     default:
@@ -23083,25 +23243,23 @@ function cloneData(vegaSpec) {
   var valuesData = data0;
   var values = valuesData.values;
   delete valuesData.values;
-
-  var data = _sanddanceReact.SandDance.VegaDeckGl.util.clone(vegaSpec.data);
-
+  var data = SandDance.VegaDeckGl.util.clone(vegaSpec.data);
   valuesData.values = values;
   return data;
 }
 
 function cloneScales(vegaSpec) {
-  return _sanddanceReact.SandDance.VegaDeckGl.util.clone(vegaSpec.scales);
+  return SandDance.VegaDeckGl.util.clone(vegaSpec.scales);
 }
 
 function serializeSpec(vegaSpec, datafile, dataRefType, scheme) {
   var scales = cloneScales(vegaSpec);
   var colorScale = scales.filter(function (scale) {
-    return scale.name === _sanddanceReact.SandDance.constants.ScaleNames.Color;
+    return scale.name === SandDance.constants.ScaleNames.Color;
   })[0];
 
   if (scheme.indexOf('dual_') >= 0) {
-    colorScale.range = _sanddanceReact.SandDance.colorSchemes.filter(function (cs) {
+    colorScale.range = SandDance.colorSchemes.filter(function (cs) {
       return cs.scheme === scheme;
     })[0].colors;
   }
@@ -23143,6 +23301,7 @@ function defaultDataRefType(datafile) {
 
 function initState(props) {
   return {
+    showSystemDialog: false,
     showVegaDialog: false,
     dataRefType: defaultDataRefType(props.dataFile),
     spec: null
@@ -23287,6 +23446,15 @@ function (_React$Component) {
         min: 0,
         max: 10000,
         defaultValue: this.props.explorer.viewerOptions.transitionDurations.view
+      })), React.createElement(_group.Group, {
+        label: _language.strings.labelSystem
+      }, React.createElement(_base.base.fabric.DefaultButton, {
+        text: _language.strings.labelSystemInfo,
+        onClick: function onClick() {
+          return _this2.setState({
+            showSystemDialog: true
+          });
+        }
       })), React.createElement(_dialog.Dialog, {
         hidden: !state.showVegaDialog,
         onDismiss: function onDismiss() {
@@ -23330,7 +23498,13 @@ function (_React$Component) {
         }
       }), React.createElement("pre", {
         id: "sanddance-vega-spec"
-      }, JSON.stringify(this.state.spec, null, 2)), React.createElement("div", null, _language.strings.labelVegaSpecNotes)));
+      }, JSON.stringify(this.state.spec, null, 2)), React.createElement("div", null, _language.strings.labelVegaSpecNotes)), React.createElement(_dialog.Dialog, {
+        hidden: !state.showSystemDialog,
+        onDismiss: function onDismiss() {
+          return _this2.setState(initState(_this2.props));
+        },
+        title: _language.strings.labelSystemInfo
+      }, React.createElement("ul", null, React.createElement("li", null, "SandDanceExplorer version: ", _version.version), React.createElement("li", null, "SandDanceReact version: ", SandDanceReact.version), React.createElement("li", null, "SandDance version: ", SandDance.version), React.createElement("li", null, "WebGL enabled: ", _canvas.capabilities.webgl ? _language.strings.labelYes : _language.strings.labelNo), React.createElement("li", null, "WebGL2 enabled: ", _canvas.capabilities.webgl2 ? _language.strings.labelYes : _language.strings.labelNo))));
     }
   }]);
 
@@ -23338,7 +23512,7 @@ function (_React$Component) {
 }(React.Component);
 
 exports.Settings = Settings;
-},{"react":"ccIB","../base":"Vlbn","../controls/dialog":"cFWm","../controls/dropdown":"Uyrp","../controls/group":"4Q3h","@msrvida/sanddance-react":"MjKu","../controls/signal":"OWDI","../language":"hk5u"}],"GuKX":[function(require,module,exports) {
+},{"react":"ccIB","@msrvida/sanddance-react":"MjKu","../base":"Vlbn","../canvas":"Dryx","../controls/dialog":"cFWm","../controls/dropdown":"Uyrp","../controls/group":"4Q3h","../controls/signal":"OWDI","../language":"hk5u","../version":"RvaL"}],"GuKX":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23489,11 +23663,11 @@ var _base = require("../base");
 
 var _dialog = require("../controls/dialog");
 
+var _canvas = require("../canvas");
+
 var _group = require("../controls/group");
 
 var _iconButton = require("../controls/iconButton");
-
-var _sanddanceReact = require("@msrvida/sanddance-react");
 
 var _language = require("../language");
 
@@ -23591,7 +23765,7 @@ function (_React$Component) {
       }, React.createElement(_base.base.fabric.PrimaryButton, {
         text: _language.strings.buttonCreateSnapshot,
         onClick: function onClick(e) {
-          var canvas = _this3.props.explorer.viewer.presenter.getElement(_sanddanceReact.SandDance.VegaDeckGl.PresenterElement.gl).getElementsByTagName('canvas')[0];
+          var canvas = (0, _canvas.getCanvas)(_this3.props.explorer.viewer);
 
           _this3.resize(canvas && canvas.toDataURL("image/png"));
 
@@ -23695,7 +23869,7 @@ function Actions(props) {
     }
   }));
 }
-},{"react":"ccIB","../base":"Vlbn","../controls/dialog":"cFWm","../controls/group":"4Q3h","../controls/iconButton":"5dQN","@msrvida/sanddance-react":"MjKu","../language":"hk5u"}],"yzxM":[function(require,module,exports) {
+},{"react":"ccIB","../base":"Vlbn","../controls/dialog":"cFWm","../canvas":"Dryx","../controls/group":"4Q3h","../controls/iconButton":"5dQN","../language":"hk5u"}],"yzxM":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23948,7 +24122,7 @@ function Topbar(props) {
   }, React.createElement("div", {
     className: "logo"
   }, React.createElement(_logo.Logo, null), React.createElement("a", {
-    href: props.logoClickUrl || "/SandDance/",
+    href: props.logoClickUrl || "/",
     target: props.logoClickTarget || '_blank'
   }, _language.strings.appName)), React.createElement("div", {
     className: "sanddance-explorer-commandbar"
@@ -23984,8 +24158,6 @@ exports.Explorer = void 0;
 
 var React = _interopRequireWildcard(require("react"));
 
-var _clickableTextLayer = require("./clickableTextLayer");
-
 var _colorMap = require("./colorMap");
 
 var _base = require("./base");
@@ -24014,7 +24186,11 @@ var _search = require("./dialogs/search");
 
 var _dataLoader = require("./dataLoader");
 
+var _clickableTextLayer = require("./clickableTextLayer");
+
 var _chartRecommender = require("@msrvida/chart-recommender");
+
+var _canvas = require("./canvas");
 
 var _sanddanceReact = require("@msrvida/sanddance-react");
 
@@ -24209,6 +24385,30 @@ function (_React$Component) {
 
           viewerOptions && viewerOptions.onLegendRowClick && viewerOptions.onAxisClick(e, search);
         },
+        onLegendHeaderClick: function onLegendHeaderClick(e) {
+          var pos = (0, _mouseEvent.getPosition)(e);
+
+          var specRole = _this2.state.specCapabilities && _this2.state.specCapabilities.roles.filter(function (r) {
+            return r.role === 'color';
+          })[0];
+
+          var positionedColumnMapProps = Object.assign({}, _this2.getColumnMapBaseProps(), {
+            container: _this2.div,
+            selectedColumnName: _this2.state.columns['color'],
+            onDismiss: function onDismiss() {
+              _this2.setState({
+                positionedColumnMapProps: null
+              });
+            },
+            specRole: specRole,
+            left: pos.left - _this2.div.clientLeft,
+            top: pos.top - _this2.div.clientTop
+          });
+
+          _this2.setState({
+            positionedColumnMapProps: positionedColumnMapProps
+          });
+        },
         onLegendRowClick: function onLegendRowClick(e, legendRow) {
           _this2.toggleableSearch(e, legendRow.search);
 
@@ -24247,6 +24447,7 @@ function (_React$Component) {
 
             if (pos && specRole) {
               var positionedColumnMapProps = Object.assign({}, _this2.getColumnMapBaseProps(), {
+                container: _this2.div,
                 selectedColumnName: _this2.state.columns[specRole.role],
                 onDismiss: function onDismiss() {
                   _this2.setState({
@@ -25192,7 +25393,7 @@ function (_React$Component) {
           }; //don't allow tabbing to the canvas
 
 
-          _this9.viewer.presenter.getElement(_sanddanceReact.SandDance.VegaDeckGl.PresenterElement.gl).getElementsByTagName('canvas')[0].tabIndex = -1;
+          (0, _canvas.removeTabIndex)(_this9.viewer);
           _this9.props.onView && _this9.props.onView();
         },
         data: this.state.dataContent.data,
@@ -25212,7 +25413,7 @@ function (_React$Component) {
         return React.createElement("div", {
           key: i
         }, error);
-      }))), this.state.positionedColumnMapProps && React.createElement(_clickableTextLayer.ActiveDropdown, Object.assign({}, this.state.positionedColumnMapProps)));
+      }))), this.state.positionedColumnMapProps && React.createElement(_clickableTextLayer.PositionedColumnMap, Object.assign({}, this.state.positionedColumnMapProps)));
     }
   }, {
     key: "getColumnMapBaseProps",
@@ -25245,35 +25446,31 @@ function (_React$Component) {
 }(React.Component);
 
 exports.Explorer = Explorer;
-},{"react":"ccIB","./clickableTextLayer":"UUG7","./colorMap":"E67y","./base":"Vlbn","./colorScheme":"L8O2","./dialogs/chart":"NGSt","./dialogs/color":"N8IJ","./partialInsight":"tb7d","./dialogs/dataBrowser":"8pJL","./controls/dataScope":"Os+N","./defaults":"Tl9z","./controls/dialog":"cFWm","./columns":"f8v0","./mouseEvent":"yvMl","./dialogs/search":"ozxe","./dataLoader":"f19h","@msrvida/chart-recommender":"/i6U","@msrvida/sanddance-react":"MjKu","./dialogs/settings":"zKGJ","./controls/sidebar":"f8Jx","./dialogs/snapshots":"3oc9","./language":"hk5u","./themes":"CgE3","./toggleSearch":"yzxM","./controls/topbar":"Afi9"}],"Focm":[function(require,module,exports) {
+},{"react":"ccIB","./colorMap":"E67y","./base":"Vlbn","./colorScheme":"L8O2","./dialogs/chart":"NGSt","./dialogs/color":"N8IJ","./partialInsight":"tb7d","./dialogs/dataBrowser":"8pJL","./controls/dataScope":"Os+N","./defaults":"Tl9z","./controls/dialog":"cFWm","./columns":"f8v0","./mouseEvent":"yvMl","./dialogs/search":"ozxe","./dataLoader":"f19h","./clickableTextLayer":"UUG7","@msrvida/chart-recommender":"/i6U","./canvas":"Dryx","@msrvida/sanddance-react":"MjKu","./dialogs/settings":"zKGJ","./controls/sidebar":"f8Jx","./dialogs/snapshots":"3oc9","./language":"hk5u","./themes":"CgE3","./toggleSearch":"yzxM","./controls/topbar":"Afi9"}],"Focm":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 var _exportNames = {
+  use: true,
+  capabilities: true,
+  getColorSettingsFromThemePalette: true,
+  themePalettes: true,
   SandDance: true,
   util: true,
-  use: true,
-  getColorSettingsFromThemePalette: true,
-  themePalettes: true
+  version: true
 };
-Object.defineProperty(exports, "SandDance", {
-  enumerable: true,
-  get: function () {
-    return _sanddanceReact.SandDance;
-  }
-});
-Object.defineProperty(exports, "util", {
-  enumerable: true,
-  get: function () {
-    return _sanddanceReact.util;
-  }
-});
 Object.defineProperty(exports, "use", {
   enumerable: true,
   get: function () {
     return _base.use;
+  }
+});
+Object.defineProperty(exports, "capabilities", {
+  enumerable: true,
+  get: function () {
+    return _canvas.capabilities;
   }
 });
 Object.defineProperty(exports, "getColorSettingsFromThemePalette", {
@@ -25288,10 +25485,28 @@ Object.defineProperty(exports, "themePalettes", {
     return _themes.themePalettes;
   }
 });
-
-var _sanddanceReact = require("@msrvida/sanddance-react");
+Object.defineProperty(exports, "SandDance", {
+  enumerable: true,
+  get: function () {
+    return _sanddanceReact.SandDance;
+  }
+});
+Object.defineProperty(exports, "util", {
+  enumerable: true,
+  get: function () {
+    return _sanddanceReact.util;
+  }
+});
+Object.defineProperty(exports, "version", {
+  enumerable: true,
+  get: function () {
+    return _version.version;
+  }
+});
 
 var _base = require("./base");
+
+var _canvas = require("./canvas");
 
 var _themes = require("./themes");
 
@@ -25307,4 +25522,8 @@ Object.keys(_explorer).forEach(function (key) {
     }
   });
 });
-},{"@msrvida/sanddance-react":"MjKu","./base":"Vlbn","./themes":"CgE3","./explorer":"KeW6"}]},{},["Focm"], "SandDanceExplorer")
+
+var _sanddanceReact = require("@msrvida/sanddance-react");
+
+var _version = require("./version");
+},{"./base":"Vlbn","./canvas":"Dryx","./themes":"CgE3","./explorer":"KeW6","@msrvida/sanddance-react":"MjKu","./version":"RvaL"}]},{},["Focm"], "SandDanceExplorer")

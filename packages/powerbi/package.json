@@ -1,9 +1,11 @@
 {
-  "name": "sandDance2019",
+  "name": "powerbi",
+  "private": true,
   "scripts": {
     "pbiviz": "pbiviz",
     "start": "pbiviz start",
-    "package": "pbiviz package"
+    "package": "pbiviz package",
+    "build": "npm run package"
   },
   "dependencies": {
     "@babel/polyfill": "^7.4.4",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@types/react-dom": "^16.8.4",
+    "powerbi-visuals-tools": "^3.1.5",
     "ts-loader": "5.2.2"
   }
 }
